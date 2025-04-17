@@ -52,11 +52,6 @@
       cursor: pointer;
     }
 
-    button {
-      background-color: white;
-      cursor: pointer;
-    }
-
     button:hover {
       background-color: #f0f0f0;
     }
@@ -78,6 +73,9 @@
       .container {
         padding: 20px;
       }
+      .toast.success, .toast.error {
+      bottom: 30px;
+    }
 
       input[type="email"] {
         width: 100%;
@@ -87,10 +85,9 @@
     /* Toast */
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 150px;
       background-color: #fff;
-      padding: 25px 30px;
+      padding: 15px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       font-weight: 500;
