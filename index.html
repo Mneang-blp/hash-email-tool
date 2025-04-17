@@ -3,34 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <title>Hash Email SHA-256</title>
-
-  <!-- Pour un bon affichage mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Importation de la police "Inter" utilisée par Notion -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
-    /* Style général du corps de la page */
     body {
-      font-family: 'Inter', sans-serif; /* Typo élégante */
-      background-color: #f9f9f9;         /* Couleur douce d'arrière-plan */
+      font-family: 'Inter', sans-serif;
+      background-color: #f9f9f9;
       margin: 0;
       display: flex;
-      justify-content: center;          /* Centrage horizontal */
-      align-items: center;              /* Centrage vertical */
-      min-height: 100vh;                /* Hauteur minimum = 100% de la fenêtre */
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       padding: 20px;
     }
 
-    /* Boîte centrale contenant tout */
     .container {
       background-color: #fff;
       border-radius: 12px;
       padding: 30px;
       max-width: 600px;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Ombre légère */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
 
@@ -39,7 +32,6 @@
       margin-bottom: 20px;
     }
 
-    /* Style des inputs et boutons */
     input[type="email"], button {
       padding: 10px;
       font-size: 1rem;
@@ -60,47 +52,28 @@
       cursor: pointer;
     }
 
+    button {
+      background-color: white;
+      cursor: pointer;
+    }
+
     button:hover {
       background-color: #f0f0f0;
     }
 
-    /* Zone de résultat du hash */
     #result {
       display: block;
       margin-top: 15px;
-      word-break: break-all;
-      font-family: monospace;          /* Style type "code" */
+      word-break: break-word;
+      font-family: monospace;
       font-size: 0.95rem;
-      transition: opacity 0.3s ease;
     }
 
-    /* Bouton copier masqué par défaut */
     #copyButton {
       display: none;
       margin-top: 10px;
     }
 
-    /* Message de succès ou d'erreur */
-    #statusMessage {
-      margin-top: 10px;
-      font-weight: 500;
-      opacity: 0;                      /* Caché par défaut */
-      transition: opacity 0.5s ease;   /* Animation d’apparition */
-    }
-
-    .success {
-      color: green;
-    }
-
-    .error {
-      color: red;
-    }
-
-    .visible {
-      opacity: 1;
-    }
-
-    /* Responsive : petit écran */
     @media (max-width: 480px) {
       .container {
         padding: 20px;
@@ -110,80 +83,113 @@
         width: 100%;
       }
     }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #fff;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success {
+      border-left: 6px solid green;
+      color: green;
+    }
+
+    .toast.error {
+      border-left: 6px solid red;
+      color: red;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Titre de l'outil -->
     <h2>Générateur de Hash SHA-256 pour Email</h2>
-
-    <!-- Champ pour saisir un email -->
-    <input type="email" id="emailInput" placeholder="Entrez votre email" />
+    <input type="email" id="emailInput" placeholder="Entrez une adresse email valide" />
     <br>
-
-    <!-- Bouton pour générer le hash -->
     <button onclick="generateHash()">Générer le hash</button>
 
-    <!-- Affichage du hash -->
     <p>
       <strong>Hash :</strong>
       <span id="result"></span>
     </p>
 
-    <!-- Bouton pour copier le hash (visible après génération) -->
     <button id="copyButton" onclick="copyHash()">Copier le hash</button>
-
-    <!-- Message de succès/erreur -->
-    <p id="statusMessage"></p>
   </div>
 
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
   <script>
-    // Fonction pour générer un hash SHA-256
+    // Affiche un message toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Vérifie le format d'un email avec une regex
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
     async function generateHash() {
-      const email = document.getElementById("emailInput").value.trim().toLowerCase(); // Nettoyage de l'email
+      const emailInput = document.getElementById("emailInput");
+      const email = emailInput.value.trim().toLowerCase();
       const resultSpan = document.getElementById("result");
       const copyBtn = document.getElementById("copyButton");
-      const statusMessage = document.getElementById("statusMessage");
 
-      // Réinitialisation du message d’état
-      statusMessage.textContent = "";
-      statusMessage.className = "";
-      statusMessage.classList.remove("visible");
+      resultSpan.textContent = "";
+      copyBtn.style.display = "none";
 
-      // Si aucun email, on vide tout
+      // Si champ vide
       if (!email) {
-        resultSpan.textContent = "";
-        copyBtn.style.display = "none";
+        showToast("🟥 Veuillez entrer une adresse email.", "error");
         return;
       }
 
-      // Encodage + hash de l’email en SHA-256 via l'API Web Crypto
+      // Si email invalide
+      if (!isValidEmail(email)) {
+        showToast("🟥 Format de l'adresse email invalide.", "error");
+        return;
+      }
+
+      // Génération SHA-256
       const encoder = new TextEncoder();
       const data = encoder.encode(email);
       const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-      // Conversion du hash binaire en chaîne hexadécimale
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      // Affichage du résultat + bouton copier
       resultSpan.textContent = hashHex;
       copyBtn.style.display = "inline-block";
     }
 
-    // Fonction pour copier le hash dans le presse-papiers
     function copyHash() {
       const hash = document.getElementById("result").textContent;
-      const statusMessage = document.getElementById("statusMessage");
-
       navigator.clipboard.writeText(hash).then(() => {
-        // Succès de la copie
-        statusMessage.textContent = "✅ Hash copié avec succès !";
-        statusMessage.className = "success visible";
+        showToast("✅ Hash copié dans le presse-papiers !");
       }).catch(() => {
-        // Erreur de copie
-        statusMessage.textContent = "🟥 Erreur lors de la copie.";
-        statusMessage.className = "error visible";
+        showToast("🟥 Impossible de copier le hash.", "error");
       });
     }
   </script>
